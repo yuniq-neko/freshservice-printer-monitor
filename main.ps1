@@ -46,7 +46,7 @@ Function BeamItUp {
     $TicketAttributes = @{}
     $TicketAttributes.Add('description_html', $Description)
     $TicketAttributes.Add('subject' , $Subject)
-    $TicketAttributes.Add('email' , 'robot@crcmelton.com.au')
+    $TicketAttributes.Add('email' , '###')
     $TicketAttributes.Add('priority' , '3')
     $TicketAttributes.Add('status' , '2')
     $TicketAttributes.Add('source' , '2')
