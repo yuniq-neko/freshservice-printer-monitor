@@ -17,29 +17,29 @@ $FreshAPI = ''
 ###############
 # Processing : Load all functions into memory; and then run them! 😁
 ###############
-Function Main {
-    $SNMP = New-Object -ComObject olePrn.OleSNMP
-    Set-Location $(Split-Path $MyInvocation.MyCommand.Path)
-    Import-Csv -Path '.\EPM_data.csv' | ForEach-Object {
-        $snmp.open($_.Hostname,"public",2,3000)
-        $_.KEY = $snmp.get("43.11.1.1.9.1.1")
-        $_.CYAN = $snmp.get("43.11.1.1.9.1.2")
-        $_.MAGENTA = $snmp.get("43.11.1.1.9.1.3")
-        $_.YELLOW = $snmp.get("43.11.1.1.9.1.4")
-        If ($_.CYAN -le $tol -or $_.MAGENTA -le $tol -or $_.YELLOW -le $tol -or $_.KEY -le $tol) {
-            $_.Low = '1'
-        } else {
+Function Main { # Main Processing Function; Gets data from Printers, and saves them into CSV.
+    $SNMP = New-Object -ComObject olePrn.OleSNMP # Import SNMP Libraries
+    Set-Location $(Split-Path $MyInvocation.MyCommand.Path) # Move the Powershell session to our location
+    Import-Csv -Path '.\EPM_data.csv' | ForEach-Object { # Import CSV; Run the following for each printer in CSV:
+        $snmp.open($_.Hostname,"public",2,3000) # Open a SNMP connection to the printer
+        $_.KEY = $snmp.get("43.11.1.1.9.1.1") # Get Value of SNMP Code for Black Ink, Save it to the variable from CSV
+        $_.CYAN = $snmp.get("43.11.1.1.9.1.2") # Get Value of SNMP Code for Cyan Ink, Save it to the variable from CSV
+        $_.MAGENTA = $snmp.get("43.11.1.1.9.1.3") # Get Value of SNMP Code for Magenta Ink, Save it to the variable from CSV
+        $_.YELLOW = $snmp.get("43.11.1.1.9.1.4") # Get Value of SNMP Code for Yellow Ink, Save it to the variable from CSV
+        If ($_.CYAN -le $tol -or $_.MAGENTA -le $tol -or $_.YELLOW -le $tol -or $_.KEY -le $tol) { # Below Tolerance? If so; Set Low to 1
+            $_.Low = '1' 
+        } else { # No longer low; Reset all the tags.
             $_.Low = '0'
             $_.Alerted = '0'
         }
-        If ($_.Low -eq '1' -and $_.Alerted -eq '0') {
-            BeamItUp -H $_.Hostname -C $_.CYAN -M $_.MAGENTA -Y $_.YELLOW -K $_.KEY
-            $_.Alerted = '1'
+        If ($_.Low -eq '1' -and $_.Alerted -eq '0') { # Low and have'nt reported it already?
+            BeamItUp -H $_.Hostname -C $_.CYAN -M $_.MAGENTA -Y $_.YELLOW -K $_.KEY # "BeamItUp" to Scotty! (Or well... Send a Freshservice Ticket... 😁)
+            $_.Alerted = '1' # Flip the tag for Alerted; As we have now reported it
         }
-        $_
-    } | Export-Csv -Path '.\EPM_data.csv.tmp' -NoTypeInformation
-    Remove-Item -Path '.\EPM_data.csv'
-    Rename-Item -Path '.\EPM_data.csv.tmp' -NewName '.\EPM_data.csv'
+        $_ # Output results back into Console in preperation for re-wrapping into CSV
+    } | Export-Csv -Path '.\EPM_data.csv.tmp' -NoTypeInformation # Create Temporary CSV with all up to date data
+    Remove-Item -Path '.\EPM_data.csv' # Remove and Drop the Original CSV File
+    Rename-Item -Path '.\EPM_data.csv.tmp' -NewName '.\EPM_data.csv' # And make the Temporary CSV into a not-so-temporary CSV
 }
 
 Function BeamItUp {
