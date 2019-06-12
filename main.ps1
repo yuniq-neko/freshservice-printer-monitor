@@ -13,6 +13,8 @@ $tol = 1
 $FreshURL = 'https://<helpdesk-name>.freshservice.com/'
 # Freshservice API Key : This is the API key that is needed to authorise creating tickets
 $FreshAPI = ''
+# Email Address to use for the Ticket Requester
+$BotEmail = 'robot@<your-domain>.com'
 
 ###############
 # Processing : Load all functions into memory; and then run them! 😁
@@ -55,7 +57,7 @@ Function BeamItUp { # "BeamItUp" to Scotty! (Or well... Send a Freshservice Tick
     $TicketAttributes = @{} # Create TicketAttributes Variable
     $TicketAttributes.Add('description_html', $Description) # Set the Ticket Description
     $TicketAttributes.Add('subject' , $Subject) # Set the Ticket Subject
-    $TicketAttributes.Add('email' , '###') # Set the Ticket / Requester Email
+    $TicketAttributes.Add('email' , $BotEmail) # Set the Ticket / Requester Email
     $TicketAttributes.Add('priority' , '3') # Set the Ticket Priority
     $TicketAttributes.Add('status' , '2') # Set the Ticket Status
     $TicketAttributes.Add('source' , '2') # Set the Ticket Source
