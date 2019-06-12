@@ -19,7 +19,7 @@ $FreshAPI = ''
 ###############
 Function Main {
     $SNMP = New-Object -ComObject olePrn.OleSNMP
-    cd 'C:\Repository\EPSON Printer Monitor\'
+    Set-Location $(Split-Path $MyInvocation.MyCommand.Path)
     Import-Csv -Path '.\EPM_data.csv' | ForEach-Object {
         $snmp.open($_.Hostname,"public",2,3000)
         $_.KEY = $snmp.get("43.11.1.1.9.1.1")
