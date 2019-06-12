@@ -1,12 +1,22 @@
-#########################
-# EPSON Printer Monitor #
-####################v2.2#
+###############
+# Freshservice Printer Monitor
+###############
+# Creates a Freshservice ticket when a printer is running low on ink
+# Created by Caleb Fraser (github.com/yuniq-neko)
 
+###############
 # Configuration
-#   Lower Tolerance to trigger alerts at: (equal to or below)
+###############
+# Tolerance : This is the level of ink we want the ticket generated at. (Equal to or Below)
 $tol = 1
+# Freshservice URL : This is the URL of your Freshservice Helpdesk (https://<NAME>.freshservice.com/)
+$FreshURL = 'https://<helpdesk-name>.freshservice.com/'
+# Freshservice API Key : This is the API key that is needed to authorise creating tickets
+$FreshAPI = ''
 
-# Processing
+###############
+# Processing : Load all functions into memory; and then run them! 😁
+###############
 Function Main {
     $SNMP = New-Object -ComObject olePrn.OleSNMP
     cd 'C:\Repository\EPSON Printer Monitor\'
@@ -35,14 +45,13 @@ Function Main {
 Function BeamItUp {
     Param ([string]$H,[string]$C,[string]$M,[string]$Y,[string]$K)
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $APIKey = '###'
-    $EncodedCredentials = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $APIKey,$null)))
+    $EncodedCredentials = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $FreshAPI,$null)))
     $HTTPHeaders = @{}
     $HTTPHeaders.Add('Authorization', ("Basic {0}" -f $EncodedCredentials))
     $HTTPHeaders.Add('Content-Type', 'application/json')
     $Description = '<!doctype html><html><head><meta charset="utf-8"><style>h1,p{font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, "sans-serif"; margin:0px;}</style></head><body><p><b>A Epson printer has reached 1% of remaining ink and is in need of Ink Bag Replacement<br>Please replace the ink bag in this printer as soon as possible</b><br><br><b>Hostname:</b> ' + $H + '<br><b>Cyan:</b> ' + $C + '%<br><b>Magenta:</b> ' + $M + '%<br><b>Yellow:</b> ' + $Y + '%<br><b>Key:</b> ' + $K + '%</p></body></html>'
     $Subject = $H + ' is in need of inkbag replacement'
-    $URL = 'https://###.freshservice.com/helpdesk/tickets.json'
+    $URL = $FreshURL + 'helpdesk/tickets.json'
     $TicketAttributes = @{}
     $TicketAttributes.Add('description_html', $Description)
     $TicketAttributes.Add('subject' , $Subject)
