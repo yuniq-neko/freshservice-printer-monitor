@@ -42,27 +42,27 @@ Function Main { # Main Processing Function; Gets data from Printers, and saves t
     Rename-Item -Path '.\EPM_data.csv.tmp' -NewName '.\EPM_data.csv' # And make the Temporary CSV into a not-so-temporary CSV
 }
 
-Function BeamItUp {
-    Param ([string]$H,[string]$C,[string]$M,[string]$Y,[string]$K)
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $EncodedCredentials = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $FreshAPI,$null)))
-    $HTTPHeaders = @{}
-    $HTTPHeaders.Add('Authorization', ("Basic {0}" -f $EncodedCredentials))
-    $HTTPHeaders.Add('Content-Type', 'application/json')
-    $Description = '<!doctype html><html><head><meta charset="utf-8"><style>h1,p{font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, "sans-serif"; margin:0px;}</style></head><body><p><b>A Epson printer has reached 1% of remaining ink and is in need of Ink Bag Replacement<br>Please replace the ink bag in this printer as soon as possible</b><br><br><b>Hostname:</b> ' + $H + '<br><b>Cyan:</b> ' + $C + '%<br><b>Magenta:</b> ' + $M + '%<br><b>Yellow:</b> ' + $Y + '%<br><b>Key:</b> ' + $K + '%</p></body></html>'
-    $Subject = $H + ' is in need of inkbag replacement'
-    $URL = $FreshURL + 'helpdesk/tickets.json'
-    $TicketAttributes = @{}
-    $TicketAttributes.Add('description_html', $Description)
-    $TicketAttributes.Add('subject' , $Subject)
-    $TicketAttributes.Add('email' , '###')
-    $TicketAttributes.Add('priority' , '3')
-    $TicketAttributes.Add('status' , '2')
-    $TicketAttributes.Add('source' , '2')
-    $TicketAttributes.Add('ticket_type' , 'Incident')
-    $TicketAttributes = @{'helpdesk_ticket' = $TicketAttributes}
-    $JSON = $TicketAttributes | ConvertTo-Json
-    Invoke-RestMethod -Method Post -Uri $URL -Headers $HTTPHeaders -Body $JSON
+Function BeamItUp { # "BeamItUp" to Scotty! (Or well... Send a Freshservice Ticket... 😁)
+    Param ([string]$H,[string]$C,[string]$M,[string]$Y,[string]$K) # Receive variables from whatever called this function
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 # Change version of TLS
+    $EncodedCredentials = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $FreshAPI,$null))) # Encode our Credentials...
+    $HTTPHeaders = @{} # Create HTTPHeaders Variable
+    $HTTPHeaders.Add('Authorization', ("Basic {0}" -f $EncodedCredentials) ) # Add Auth Headers
+    $HTTPHeaders.Add('Content-Type', 'application/json') # Add Content Headers
+    $Description = '<!doctype html><html><head><meta charset="utf-8"><style>h1,p{font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, "sans-serif"; margin:0px;}</style></head><body><p><b>A Epson printer has reached 1% of remaining ink and is in need of Ink Bag Replacement<br>Please replace the ink bag in this printer as soon as possible</b><br><br><b>Hostname:</b> ' + $H + '<br><b>Cyan:</b> ' + $C + '%<br><b>Magenta:</b> ' + $M + '%<br><b>Yellow:</b> ' + $Y + '%<br><b>Key:</b> ' + $K + '%</p></body></html>' # HTML for Ticket Description
+    $Subject = $H + ' is in need of inkbag replacement' # Create String for Subject Line
+    $URL = $FreshURL + 'helpdesk/tickets.json' # Add on to FreshURL from Config
+    $TicketAttributes = @{} # Create TicketAttributes Variable
+    $TicketAttributes.Add('description_html', $Description) # Set the Ticket Description
+    $TicketAttributes.Add('subject' , $Subject) # Set the Ticket Subject
+    $TicketAttributes.Add('email' , '###') # Set the Ticket / Requester Email
+    $TicketAttributes.Add('priority' , '3') # Set the Ticket Priority
+    $TicketAttributes.Add('status' , '2') # Set the Ticket Status
+    $TicketAttributes.Add('source' , '2') # Set the Ticket Source
+    $TicketAttributes.Add('ticket_type' , 'Incident') # Set the Ticket as Incident
+    $TicketAttributes = @{'helpdesk_ticket' = $TicketAttributes} # And bundle it all up into one big variable
+    $JSON = $TicketAttributes | ConvertTo-Json # Turn the big one variable into JSON
+    Invoke-RestMethod -Method Post -Uri $URL -Headers $HTTPHeaders -Body $JSON # And finally beam the JSON file up to scotty!
 }
 
 Main #Starts Processing now that Functions are in Memory
